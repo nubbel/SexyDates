@@ -7,68 +7,22 @@
 //
 
 #import "NSNumber+SexyDates.h"
-
 #import <objc/runtime.h>
 
 
-@interface NSNumber (SexyDatesPrivate)
+typedef NSInteger SexyDatesDuration;
 
-@property (nonatomic, strong) NSDictionary *dateComponentsDictionary;
-
-@end
-
-static char DATE_COMPONENTS_DICTIONARY_KEY;
-
-static NSString *const DATE_COMPONTENTS_MONTH_KEY = @"month";
-static NSString *const DATE_COMPONTENTS_YEAR_KEY  = @"year";
-
-@implementation NSNumber (SexyDatesPrivate)
-
-- (void)setDateComponentsDictionary:(NSDictionary *)dateComponentsDictionary {
-    objc_setAssociatedObject(self, &DATE_COMPONENTS_DICTIONARY_KEY, dateComponentsDictionary, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-- (NSDictionary *)dateComponentsDictionary {
-    return objc_getAssociatedObject(self, &DATE_COMPONENTS_DICTIONARY_KEY);
-}
-
-- (NSDateComponents *)dateComponents:(BOOL)inverted {
-    NSDictionary *dict = self.dateComponentsDictionary;
-    if (dict) {
-        NSInteger sign = inverted ? -1 : 1;
-        
-        NSDateComponents *components = [[NSDateComponents alloc] init];
-        
-        [dict enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSNumber *value, BOOL *stop) {
-            if ([key isEqualToString:DATE_COMPONTENTS_MONTH_KEY]) {
-                components.month = sign * [value integerValue];
-            }
-            else if ([key isEqualToString:DATE_COMPONTENTS_YEAR_KEY]) {
-                components.year = sign * [value integerValue];
-            }
-        }];
-        
-        return components;
-    }
-    
-    return nil;
-}
-
-@end
-
+static char SEXY_DATES_COMPONENTS_KEY;
 
 @implementation NSNumber (SexyDates)
 
-- (NSTimeInterval)timeIntervalValue {
-    return (NSTimeInterval)[self doubleValue];
-}
-
+#pragma mark - Sexy durations
 - (NSNumber *)second {
     return [self seconds];
 }
 
 - (NSNumber *)seconds {
-    return @([self timeIntervalValue]);
+    return [self sexyDates_numberForComponent:@"second"];
 }
 
 - (NSNumber *)minute {
@@ -76,7 +30,7 @@ static NSString *const DATE_COMPONTENTS_YEAR_KEY  = @"year";
 }
 
 - (NSNumber *)minutes {
-    return @([self timeIntervalValue] * 60.0);
+    return [self sexyDates_numberForComponent:@"minute"];
 }
 
 - (NSNumber *)hour {
@@ -84,7 +38,7 @@ static NSString *const DATE_COMPONTENTS_YEAR_KEY  = @"year";
 }
 
 - (NSNumber *)hours {
-    return @([self timeIntervalValue] * 60.0 * 60.0);
+    return [self sexyDates_numberForComponent:@"hour"];
 }
 
 - (NSNumber *)day {
@@ -92,7 +46,7 @@ static NSString *const DATE_COMPONTENTS_YEAR_KEY  = @"year";
 }
 
 - (NSNumber *)days {
-    return @([self timeIntervalValue] * 60.0 * 60.0 * 24.0);
+    return [self sexyDates_numberForComponent:@"day"];
 }
 
 - (NSNumber *)week {
@@ -100,7 +54,7 @@ static NSString *const DATE_COMPONTENTS_YEAR_KEY  = @"year";
 }
 
 - (NSNumber *)weeks {
-    return [@([self timeIntervalValue] * 7.0) days];
+    return [self sexyDates_numberForComponent:@"week"];
 }
 
 - (NSNumber *)month {
@@ -108,11 +62,7 @@ static NSString *const DATE_COMPONTENTS_YEAR_KEY  = @"year";
 }
 
 - (NSNumber *)months {
-    NSNumber *number = [@([self timeIntervalValue] * 30.0) days];
-    
-    number.dateComponentsDictionary = @{DATE_COMPONTENTS_MONTH_KEY: @([self integerValue])};
-    
-    return number;
+    return [self sexyDates_numberForComponent:@"month"];
 }
 
 - (NSNumber *)year {
@@ -120,24 +70,14 @@ static NSString *const DATE_COMPONTENTS_YEAR_KEY  = @"year";
 }
 
 - (NSNumber *)years {
-    NSNumber *number = [@([self timeIntervalValue] * 365.0) days];
-    
-    number.dateComponentsDictionary = @{DATE_COMPONTENTS_YEAR_KEY: @([self doubleValue])};
-    
-    return number;
+    return [self sexyDates_numberForComponent:@"year"];
 }
 
-#pragma mark - Date creation
+#pragma mark - Sexy dates
 - (NSDate *)until:(NSDate *)date {
-    NSDateComponents *components = [self dateComponents:YES];
-    if (components) {
-        return [[NSCalendar currentCalendar] dateByAddingComponents:components
-                                                             toDate:date
-                                                            options:0];
-    }
-    
-    return [NSDate dateWithTimeInterval:-[self timeIntervalValue]
-                              sinceDate:date];
+    return [[NSCalendar currentCalendar] dateByAddingComponents:self.sexyDates_invertedDateComponents
+                                                         toDate:date
+                                                        options:0];
 }
 
 - (NSDate *)ago {
@@ -145,19 +85,80 @@ static NSString *const DATE_COMPONTENTS_YEAR_KEY  = @"year";
 }
 
 - (NSDate *)since:(NSDate *)date {
-    NSDateComponents *components = [self dateComponents:NO];
-    if (components) {
-        return [[NSCalendar currentCalendar] dateByAddingComponents:components
-                                                             toDate:date
-                                                            options:0];
-    }
-    
-    return [NSDate dateWithTimeInterval:[self timeIntervalValue]
-                              sinceDate:date];
+    return [[NSCalendar currentCalendar] dateByAddingComponents:self.sexyDates_dateComponents
+                                                         toDate:date
+                                                        options:0];
 }
 
 - (NSDate *)fromNow {
     return [self since:[NSDate date]];
+}
+
+#pragma mark - Private
+- (instancetype)sexyDates_numberForComponent:(NSString *)component {
+    static NSDictionary *componentFactors;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        componentFactors = @{
+                             @"second": @(1),
+                             @"minute": @(1 * 60),
+                             @"hour"  : @(1 * 60 * 60),
+                             @"day"   : @(1 * 60 * 60 * 24),
+                             @"week"  : @(1 * 60 * 60 * 24 * 7),
+                             @"month" : @(1 * 60 * 60 * 24 * 7 * 30),
+                             @"year"  : @(1 * 60 * 60 * 24 * 7 * 30 * 12)
+                             };
+    });
+    
+    
+    SexyDatesDuration f = [componentFactors[component] sexyDates_durationValue];
+    
+    NSNumber *number = @([self sexyDates_durationValue] * f);
+    [number.sexyDates_dateComponents setValue:self forKey:component];
+    
+    return number;
+}
+
+- (SexyDatesDuration)sexyDates_durationValue {
+    return [self integerValue];
+}
+
+- (NSDateComponents *)sexyDates_dateComponents {
+    NSDateComponents *components = objc_getAssociatedObject(self, &SEXY_DATES_COMPONENTS_KEY);
+    
+    if (!components) {
+        components = [[NSDateComponents alloc] init];
+        
+        components.second = 0;
+        components.minute = 0;
+        components.hour   = 0;
+        components.day    = 0;
+        components.week   = 0;
+        components.month  = 0;
+        components.year   = 0;
+        
+        objc_setAssociatedObject(self,
+                                 &SEXY_DATES_COMPONENTS_KEY,
+                                 components,
+                                 OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    }
+    
+    return components;
+}
+
+// returns a copy of the original date components
+- (NSDateComponents *)sexyDates_invertedDateComponents {
+    NSDateComponents *components = [self.sexyDates_dateComponents copy];
+    
+    components.second *= -1;
+    components.minute *= -1;
+    components.hour   *= -1;
+    components.day    *= -1;
+    components.week   *= -1;
+    components.month  *= -1;
+    components.year   *= -1;
+    
+    return components;
 }
 
 @end

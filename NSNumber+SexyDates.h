@@ -10,8 +10,6 @@
 
 @interface NSNumber (SexyDates)
 
-- (NSTimeInterval)timeIntervalValue;
-
 - (NSNumber *)second;
 - (NSNumber *)seconds;
 
