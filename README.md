@@ -5,7 +5,13 @@ SexyDates is an Objective-C category on NSNumber that allows you to create dates
 
 Installation
 ------------
-Just add the two files `NSNumber+SexyDates.h` and `NSNumber+SexyDates` to your project and you're ready to go!
+###[CocoaPods](http://cocoapods.org)###
+```ruby
+pod 'SexyDates'
+```
+
+###Manual###
+Copy `SexyDates.h`, `NSNumber+SexyDates.{h,m}` into your project.
 
 Usage examples
 --------------
