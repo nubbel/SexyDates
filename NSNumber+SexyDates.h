@@ -10,31 +10,25 @@
 
 @interface NSNumber (SexyDates)
 
-- (NSNumber *)second;
-- (NSNumber *)seconds;
+- (NSDateComponents *)second;
+- (NSDateComponents *)seconds;
 
-- (NSNumber *)minute;
-- (NSNumber *)minutes;
+- (NSDateComponents *)minute;
+- (NSDateComponents *)minutes;
 
-- (NSNumber *)hour;
-- (NSNumber *)hours;
+- (NSDateComponents *)hour;
+- (NSDateComponents *)hours;
 
-- (NSNumber *)day;
-- (NSNumber *)days;
+- (NSDateComponents *)day;
+- (NSDateComponents *)days;
 
-- (NSNumber *)week;
-- (NSNumber *)weeks;
+- (NSDateComponents *)week;
+- (NSDateComponents *)weeks;
 
-- (NSNumber *)month;
-- (NSNumber *)months;
+- (NSDateComponents *)month;
+- (NSDateComponents *)months;
 
-- (NSNumber *)year;
-- (NSNumber *)years;
-
-- (NSDate *)until:(NSDate *)date;
-- (NSDate *)ago;
-
-- (NSDate *)since:(NSDate *)date;
-- (NSDate *)fromNow;
+- (NSDateComponents *)year;
+- (NSDateComponents *)years;
 
 @end

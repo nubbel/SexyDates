@@ -11,6 +11,6 @@ Pod::Spec.new do |s|
   s.license      = { :type => 'MIT', :file => 'LICENSE' }
   s.author       = { "Dominique d'Argent" => "dominique.dargent@me.com" }
   s.source       = { :git => "https://github.com/nubbel/SexyDates.git", :tag => s.version.to_s }
-  s.source_files = 'SexyDates.h', 'NSNumber+SexyDates.h', 'NSNumber+SexyDates.m'
+  s.source_files = 'SexyDates.h', 'NSNumber+SexyDates.{h,m}', 'NSDateComponents+SexyDates.{h,m}'
   s.requires_arc = true
 end

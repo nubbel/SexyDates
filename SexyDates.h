@@ -7,3 +7,4 @@
 //
 
 #import "NSNumber+SexyDates.h"
+#import "NSDateComponents+SexyDates.h"
