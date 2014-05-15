@@ -124,7 +124,7 @@ static char SEXY_DATES_COMPONENTS_KEY;
 }
 
 - (NSDateComponents *)sexyDates_dateComponents {
-    NSDateComponents *components = objc_getAssociatedObject(self, &SEXY_DATES_COMPONENTS_KEY);
+    NSDateComponents *components = objc_getAssociatedObject([self class], &SEXY_DATES_COMPONENTS_KEY);
     
     if (!components) {
         components = [[NSDateComponents alloc] init];
@@ -137,7 +137,7 @@ static char SEXY_DATES_COMPONENTS_KEY;
         components.month  = 0;
         components.year   = 0;
         
-        objc_setAssociatedObject(self,
+        objc_setAssociatedObject([self class],
                                  &SEXY_DATES_COMPONENTS_KEY,
                                  components,
                                  OBJC_ASSOCIATION_RETAIN_NONATOMIC);
