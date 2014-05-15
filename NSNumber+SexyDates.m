@@ -125,9 +125,11 @@ static char SEXY_DATES_COMPONENTS_KEY;
 
 - (NSDateComponents *)sexyDates_dateComponents {
     static NSMapTable *hashTable = nil;
-    if (!hashTable) {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         hashTable = [[NSMapTable alloc] init];
-    }
+    });
+    
 
     NSString *hash = [hashTable objectForKey:self];
     if (!hash) {
