@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "SexyDates"
-  s.version      = "1.0.0"
+  s.version      = "1.0.1"
   s.summary      = "NSNumber category that creates dates in a sexy, Rails-like way: `@(3).days.ago`."
   s.description  = <<-DESC
     SexyDates is an Objective-C category on NSNumber that
